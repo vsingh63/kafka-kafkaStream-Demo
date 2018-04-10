@@ -69,8 +69,8 @@ public class SubscribeToStreamedTopic {
 		return props;
 
 	}
-	
-	private Boolean GetResponseFromOCR () {
+
+	private Boolean GetResponseFromOCR() {
 		return Math.random() < 0.5;
 	}
 

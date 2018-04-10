@@ -7,6 +7,7 @@ import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,11 +17,13 @@ public class KafkaProducerController {
 
 	private final static String BOOTSTRAP_SERVERS = "localhost:9092";
 
-	@RequestMapping(path = "/v1/publish/{topic}", method = RequestMethod.GET)
-	public ResponseEntity publishDataToTopic(@PathVariable(value = "topic") String topic) throws Exception {
-		System.out.println("message" + topic);
-		runProducer(topic);
-		//Dummy response
+	@RequestMapping(path = "/v1/publish/{topic}", method = RequestMethod.POST)
+	public ResponseEntity publishDataToTopic(@PathVariable(value = "topic") String topic, @RequestBody String files)
+			throws Exception {
+		System.out.println("Topic - " + topic);
+		System.out.println("Documents - " + files);
+		runProducer(topic, files);
+		// Dummy response
 		return ResponseEntity.ok("success");
 
 	}
@@ -35,29 +38,28 @@ public class KafkaProducerController {
 
 	}
 
-	public void runProducer(final String topic) throws Exception {
+	public void runProducer(final String topic, String files) throws Exception {
 		final Producer<String, String> producer = createProducer();
 		long time = System.currentTimeMillis();
 		try {
 
-			final ProducerRecord<String, String> record = new ProducerRecord<>(topic, String.valueOf(time), "First file " + time);
+			final ProducerRecord<String, String> record = new ProducerRecord<>(topic, String.valueOf(time),
+					files + "-" +time);
 
-			 producer.send(record, (metadata, exception) -> {
-				 long elapsedTime = System.currentTimeMillis() - time;
-				 if (metadata != null) {
-	                    System.out.printf("sent record(key=%s value=%s) " +
-	                                    "meta(partition=%d, offset=%d) time=%d\n",
-	                            record.key(), record.value(), metadata.partition(),
-	                            metadata.offset(), elapsedTime);
-	                } else {
-	                    exception.printStackTrace();
-	                }
-			 });
-			 
+			producer.send(record, (metadata, exception) -> {
+				long elapsedTime = System.currentTimeMillis() - time;
+				if (metadata != null) {
+					System.out.printf("sent record(key=%s value=%s) " + "meta(partition=%d, offset=%d) time=%d\n",
+							record.key(), record.value(), metadata.partition(), metadata.offset(), elapsedTime);
+				} else {
+					exception.printStackTrace();
+				}
+			});
+
 		} finally {
 			producer.flush();
 			producer.close();
 		}
-		
+
 	}
 }

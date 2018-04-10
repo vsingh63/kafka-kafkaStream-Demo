@@ -14,14 +14,13 @@ public class StreamAPIService {
 
 	public void processStreamData() {
 		StreamsConfig streamsConfig = new StreamsConfig(getStreamConfig());
-		final Serde < String > stringSerde = Serdes.String();
-        final Serde<byte[]> byteArraySerde = Serdes.ByteArray();
+		final Serde<String> stringSerde = Serdes.String();
+		final Serde<byte[]> byteArraySerde = Serdes.ByteArray();
 		final KStreamBuilder builder = new KStreamBuilder();
-		final KStream<byte[], String> creditDocs = builder.stream(byteArraySerde, stringSerde,"credit-check-docs");
-		final KStream<byte[], String> transformed =   creditDocs.map(
-				(key, value) -> KeyValue.pair(
-						key, value.toUpperCase()));
-		transformed.to(byteArraySerde, stringSerde,"streamed-out-topic");
+		final KStream<byte[], String> creditDocs = builder.stream(byteArraySerde, stringSerde, "credit-check-docs");
+		final KStream<byte[], String> transformed = creditDocs
+				.map((key, value) -> KeyValue.pair(key, value.toUpperCase()));
+		transformed.to(byteArraySerde, stringSerde, "streamed-out-topic");
 		KafkaStreams stream = new KafkaStreams(builder, streamsConfig);
 		stream.start();
 		Runtime.getRuntime().addShutdownHook(new Thread(stream::close));

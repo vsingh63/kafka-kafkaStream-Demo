@@ -9,25 +9,25 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 public class PublishMessageToFailureTopic {
-	
-private final static String BOOTSTRAP_SERVERS = "localhost:9092";
-	
-	public void publishFailureResponse (String modifiedRecord) {
+
+	private final static String BOOTSTRAP_SERVERS = "localhost:9092";
+
+	public void publishFailureResponse(String modifiedRecord) {
 		long time = System.currentTimeMillis();
-		String failureMessage = modifiedRecord.replace("FIRST FILE", "FAILURE");
+		String failureMessage = modifiedRecord.concat("-FAILURE");
 		System.out.println("failure record : " + failureMessage);
 		final Producer<String, String> producer = createProducer();
 		try {
-			final ProducerRecord<String, String> record = new ProducerRecord<>("failure-topic", String.valueOf(time),  failureMessage);
+			final ProducerRecord<String, String> record = new ProducerRecord<>("failure-topic", String.valueOf(time),
+					failureMessage);
 			producer.send(record);
 		} finally {
 			producer.flush();
 			producer.close();
 		}
-		
+
 	}
-	
-	
+
 	private Producer<String, String> createProducer() {
 		Properties props = new Properties();
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
